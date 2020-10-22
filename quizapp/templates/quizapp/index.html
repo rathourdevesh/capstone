@@ -1,0 +1,65 @@
+{% extends "quizapp/layout.html" %}
+{% load static %}
+
+{% block body %}
+
+<div class="container p-1 my-3 "><h3>Active Challanges</h3></div>
+<style>
+    #cont { 
+        background-color: rgb(175, 181, 189);   
+        padding-bottom: 2px; 
+    }
+</style>
+<script>
+    function enroll(contestid){
+
+        var element =event.target;
+
+        if(element.value == 'enroll'){
+        fetch('/enroll/', {
+            method: 'PUT',
+            body: JSON.stringify({
+                id: contestid
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if( "message" in data ){
+                alert("You are now enrolled!!");
+                element.value = 'test';
+                element.innerHTML = 'Take Test';
+            }
+            else{
+                console.log(data.error);
+            }
+        }); 
+    }else{
+        rediretUrl = `/test/${contestid}`;
+        window.location.href= rediretUrl;
+    }
+    }
+</script>
+{% for i in contests %}
+<div class="container  p-3 my-3 border" id="cont">
+    <h4>{{ i.contestName }}</h4>
+     Time limit : {{ i.timelimit }}<br>
+     Total Score:{{ i.maxScore }}<br>
+     Total enrolments :{{ i.enrolments.count }}<br>
+     Total Submissions :{{ i.subs.count }}<br>
+     {% if request.user in i.enrolments.all %}
+        {% if request.user in i.subs.all %}
+        <button onclick="window.location.href=`/scores/${'{{ i.id }}'}`" value="scores">View Scores</button>
+        {% else %}
+        <button onclick="enroll('{{ i.id }}')" value="test">Take Test</button>    
+        {% endif %}
+     {% else %}
+     <button onclick="enroll('{{ i.id }}')" value="enroll">Enroll</button>
+     {% endif %}
+    <button onclick="window.location.href=`/leaderboard/${'{{ i.id }}'}`" value="subs" style="float:right;">View Submissions</button>
+</div>    
+{% endfor %}
+{% endblock %}
+
+{% block script %}
+
+{% endblock %}

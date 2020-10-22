@@ -1,0 +1,120 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Quiz App</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+        <link href="{% static 'quizapp/styles.css' %}" rel="stylesheet">
+        <meta name="viewport" content="width=device-width , initial-scale=1.0">
+        <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+        <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+        <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-sm navbar-light bg-secondary">
+            <a class="navbar-brand text-white" href="#">Quiz App</a>
+            <div class="nav navbar-nav mx-auto">
+                <span class="nav-item nav-link text-light" id="timer">0</span>
+            </div>            
+            <div class="nav navbar-nav ml-auto">
+            <button class="btn btn-primary" onclick="testSubmit()" type="submit">Submit</button>
+            <script>
+                function testSubmit() {
+
+                    var r = confirm("Your response is being Submitted");
+                    if(r == true){
+                        console.log("Test Submitted");
+                        clearInterval(intervalId);
+                        document.querySelector("#test-form").submit();
+                    }else{
+                        console.log("Aborted");
+                    }
+                    console.log("After click");
+                    console.log(tl);
+                    console.log(t);
+                }   
+            </script>
+            </div>
+        </nav>
+
+        <script type="text/babel">  
+        var tl = "{{ cnt.timelimit }}" ;
+        var t;
+        var intervalId;
+        class Timer extends React.Component {
+            constructor(props){
+                super(props);
+                this.state = {
+                    currentCount: (tl*60)
+                }
+            }
+            timer() {
+                this.setState({
+                currentCount: this.state.currentCount - 1
+                })
+                t = this.state.currentCount;
+                if(this.state.currentCount == 0) {
+                alert("Your response is being Submitted");
+                clearInterval(this.intervalId);
+                document.querySelector("#test-form").submit();
+                }
+            }
+            componentDidMount() {
+                this.intervalId = setInterval(this.timer.bind(this), 1000);
+                intervalId = this.intervalId;
+            }
+            componentWillUnmount(){
+                clearInterval(this.intervalId);
+            }
+            render() {
+                return(
+                <div>{this.state.currentCount} seconds left</div>
+                );
+            }
+            }
+
+        ReactDOM.render(<Timer />, document.querySelector('#timer'));
+
+        </script>
+        <div class="body pt-3">  
+            <h5>{{ cnt.contestName }}</h5>
+        <form id="test-form" action="" method="POST">
+            {% for i in obj %}
+            <div class="form-group">
+                    {% csrf_token %}
+                  <div>{{ i.question }}</div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="q{{ i.id }}" id="option1{{ i.id }}" value="1">
+                    <label class="form-check-label" for="option1{{ i.id }}">
+                      {{ i.option1 }}
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="q{{ i.id }}" id="option2{{ i.id }}" value="2">
+                    <label class="form-check-label" for="option2{{ i.id }}">
+                      {{ i.option2 }}
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="q{{ i.id }}" id="option3{{ i.id }}" value="3">
+                    <label class="form-check-label" for="option3{{ i.id }}">
+                      {{ i.option3 }}
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="q{{ i.id }}" id="option4{{ i.id }}" value="4">
+                    <label class="form-check-label" for="option4{{ i.id }}">
+                      {{ i.option4 }}
+                    </label>
+                  </div>
+            </div>
+            {% endfor %}
+        </form>
+        </div>
+    </body>
+</html>
+
+
+

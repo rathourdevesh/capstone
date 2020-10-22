@@ -1,0 +1,35 @@
+{% extends "quizapp/layout.html" %}
+{% load static %}
+
+{% block body %}
+<div class="container">
+<div class="row">
+  <div class="col-sm">
+    <h3 class="pt-5">Hi Folks !!</h3><br>
+    <h3 class="pt-1">Welcome To My QuizApp</h3><br>
+    <h5 class="pt-2">Please login in take the quiz. </h5>
+  </div>
+  <div class="col-sm">
+
+    <h2 class="pt-3">Login</h2>
+
+    {% if message %}
+        <div>{{ message }}</div>
+    {% endif %}
+
+    <form class="pt-3" action="{% url 'login' %}" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <input autofocus class="form-control" type="text" name="username" placeholder="Username">
+        </div>
+        <div class="form-group">
+            <input class="form-control" type="password" name="password" placeholder="Password">
+        </div>
+        <input class="btn btn-primary" type="submit" value="Login">
+    </form>
+
+    Don't have an account? <a href="{% url 'register' %}">Register here.</a>
+  </div>
+</div>
+</div>
+{% endblock %}

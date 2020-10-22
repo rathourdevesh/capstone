@@ -1,0 +1,31 @@
+{% extends "quizapp/layout.html" %}
+{% load static %}
+
+{% block body %}
+<div class="container p-1 my-3 ">
+    <h5>@{{ request.user.username }}</h5>
+    <h5>{{ request.user.first_name }} {{ request.user.last_name }}</h5>
+    <h5>{{ request.user.email }}</h5>
+</div>
+<div class="container p-1 my-3 "><h3>My Submissions</h3></div>
+<style>
+    #cont { 
+        background-color: rgb(175, 181, 189);   
+        padding-bottom: 2px; 
+    }
+</style>
+
+{% for i in subs %}
+<div class="container  p-3 my-3 border" id="cont">
+    <h4>{{ i.contestid.contestName }}</h4>
+     Time limit : {{ i.contestid.timelimit }}<br>
+     Total Score:{{ i.contestid.maxScore }}<br>
+     My Score :{{ i.score }}<br>
+     Submitted on : {{ i.subTime }}
+</div>    
+{% endfor %}
+{% endblock %}
+
+{% block script %}
+
+{% endblock %}
