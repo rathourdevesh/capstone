@@ -1,0 +1,124 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Quiz App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link href="{% static 'quizapp/styles.css' %}" rel="stylesheet">
+    <meta name="viewport" content="width=device-width , initial-scale=1.0">
+    <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+</head>
+<body>
+<nav class="navbar navbar-expand-sm navbar-light bg-secondary">
+    <a class="navbar-brand text-white" href="#">Quiz App</a>
+    <div class="nav navbar-nav mx-auto">
+        <span class="nav-item nav-link text-light" id="timer">0</span>
+    </div>            
+    <div class="nav navbar-nav ml-auto">
+        <button class="btn btn-primary" onclick="testSubmit()" type="submit">Submit</button>
+    </div>
+</nav>
+
+<script type="text/babel">  
+    var tl = "{{ cnt.timelimit }}" ;
+    var t;
+    var intervalId;
+    class Timer extends React.Component {
+        constructor(props){
+            super(props);
+            this.state = {
+                currentCount: (tl*60)
+            }
+        }
+        timer() {
+            this.setState({
+            currentCount: this.state.currentCount - 1
+            })
+            t = this.state.currentCount;
+            if(this.state.currentCount == 0) {
+            alert("Your response is being Submitted");
+            clearInterval(this.intervalId);
+            document.querySelector("#test-form").submit();
+            }
+        }
+        componentDidMount() {
+            this.intervalId = setInterval(this.timer.bind(this), 1000);
+            intervalId = this.intervalId;
+        }
+        componentWillUnmount(){
+            clearInterval(this.intervalId);
+        }
+        render() {
+            return(
+            <div>{this.state.currentCount} seconds left</div>
+            );
+        }
+        }
+
+    ReactDOM.render(<Timer />, document.querySelector('#timer'));
+
+    </script>
+
+<div class="body pt-3">  
+    <h5>{{ cnt.contestName }}</h5>
+    <p>{{ original_paragraph }}</p> <!-- Display the original paragraph -->
+
+    <form id="test-form" action="" method="POST", class="mx-auto text-center">
+        {% csrf_token %}
+        
+        <!-- Textarea for the user to type the paragraph -->
+        <div class="form-group">
+            <textarea class="form-control" id="user_typing" rows="5" name="user_typing" , placeholder="Type the above paragraph here." onpaste="return false;" ondrop="return false;"></textarea>
+        </div>
+        <input type="hidden" name="accuracy" id="accuracy_input">
+        <input type="hidden" name="time_taken" id="time_taken_input">
+        <input type="hidden" name="max_score" id="max_score", value="{{ cnt.maxScore }}">
+    </form>
+
+    <script>
+        function testSubmit() {
+            var r = confirm("Your response is being Submitted");
+            if(r == true){
+
+            // Calculate typing speed and accuracy
+                const originalParagraph = "{{ original_paragraph }}";
+                const userTyping = document.getElementById("user_typing").value;
+                const timeTaken = tl * 60 - t; // Time taken in seconds
+
+                // Calculate typing speed (words per minute)
+                const wordsPerMinute = Math.round((userTyping.split(' ').length / timeTaken) * 60);
+
+                // Calculate accuracy (percentage of correct words)
+                const originalWords = originalParagraph.split(' ');
+                const userWords = userTyping.split(' ');
+                let correctWordsCount = 0;
+                for (let i = 0; i < Math.min(originalWords.length, userWords.length); i++) {
+                    if (originalWords[i] === userWords[i]) {
+                        correctWordsCount++;
+                    }
+                }
+                const accuracy = (correctWordsCount / originalWords.length);
+
+                // Print typing speed and accuracy
+                console.log("Typing speed: " + wordsPerMinute + " words per minute");
+                console.log("Accuracy: " + accuracy + "%");
+                document.getElementById("accuracy_input").value = accuracy;
+                document.getElementById("time_taken_input").value = timeTaken;
+
+
+                clearInterval(intervalId);
+                document.querySelector("#test-form").submit();
+            }
+            else{
+                console.log("Aborted");
+            }
+        }
+    </script>
+</div>
+
+</body>
+</html>

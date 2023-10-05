@@ -4,7 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.db import IntegrityError
-from .models import User,Contest,Questions,Submissions
+from .models import TypingTest, User,Contest,Questions,Submissions
 from .forms import testPageForm
 from django.http import JsonResponse, request
 import json
@@ -75,28 +75,54 @@ def index(request):
 @login_required
 def test(request,contestid):
     if(request.method == "POST"):
-        score = 0
-        qset = Questions.objects.filter(contestid=contestid)
-        for i in qset:
-            try:
-                res = request.POST[f"q{i.id}"]
-            except:
-                res=0
-            if(res == i.correctoption):
-                score = score + i.points
-        print(f"score = {score}")
         ct=Contest.objects.get(id=contestid)
-        sub = Submissions(user=request.user,contestid=ct,score=score)
-        sub.save()
-        ct.subs.add(request.user)
-        return HttpResponseRedirect(reverse("scores",args=[contestid]))
+        if ct.contestType == "typing":
+            accuracy = float(request.POST.get("accuracy", 0))
+            time_taken = int(request.POST.get("time_taken", 0))
+            typed_text = request.POST.get("user_typing", "")
+            words_per_minute = int(len(typed_text.split()) / (time_taken / 60))
+            maxScore = int(request.POST.get("max_score", 0))
+            import pdb;pdb.set_trace()
+            sub = Submissions(
+                user=request.user,
+                contestid=ct,
+                score=accuracy*maxScore,
+                userSubmision=typed_text,
+                timeTaken=time_taken,
+                wordsPerMin=words_per_minute
+            )
+            sub.save()
+            ct.subs.add(request.user)
+            return HttpResponseRedirect(reverse("scores", args=[contestid]))
+        else:
+            score = 0
+            qset = Questions.objects.filter(contestid=contestid)
+            for i in qset:
+                try:
+                    res = request.POST[f"q{i.id}"]
+                except:
+                    res=0
+                if(res == i.correctoption):
+                    score = score + i.points
+            print(f"score = {score}")
+            sub = Submissions(user=request.user,contestid=ct,score=score)
+            sub.save()
+            ct.subs.add(request.user)
+            return HttpResponseRedirect(reverse("scores",args=[contestid]))
     else:
-        obj = Questions.objects.filter(contestid=contestid)
         cnt = Contest.objects.filter(id=contestid).get()
-        return render(request , "quizapp/test.html", {
-            "obj":obj,
-            "cnt":cnt
-        })
+        if cnt.contestType == "typing":
+            para = TypingTest.objects.get(contestid=cnt)
+            return render(request , "quizapp/typingtest.html", {
+                "cnt":cnt,
+                "original_paragraph": para.paragraph
+            })
+        else:
+            obj = Questions.objects.filter(contestid=contestid)
+            return render(request , "quizapp/test.html", {
+                "obj":obj,
+                "cnt":cnt
+            })
 
 @login_required
 def Scores(request,contestid):
