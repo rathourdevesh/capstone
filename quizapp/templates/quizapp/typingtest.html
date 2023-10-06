@@ -72,7 +72,12 @@
         
         <!-- Textarea for the user to type the paragraph -->
         <div class="form-group">
-            <textarea class="form-control" id="user_typing" rows="5" name="user_typing" , placeholder="Type the above paragraph here." onpaste="return false;" ondrop="return false;"></textarea>
+            <textarea class="form-control" 
+                id="user_typing" rows="5" name="user_typing" 
+                ,placeholder="Type the above paragraph here." 
+                onpaste="return false;" 
+                ondrop="return false;"
+                onkeydown="noBackspaces(event);"></textarea>
         </div>
         <input type="hidden" name="accuracy" id="accuracy_input">
         <input type="hidden" name="time_taken" id="time_taken_input">
@@ -116,6 +121,9 @@
             else{
                 console.log("Aborted");
             }
+        }
+        function noBackspaces(event) {
+            if (event.keyCode == 8) event.preventDefault();
         }
     </script>
 </div>

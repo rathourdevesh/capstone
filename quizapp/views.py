@@ -82,7 +82,6 @@ def test(request,contestid):
             typed_text = request.POST.get("user_typing", "")
             words_per_minute = int(len(typed_text.split()) / (time_taken / 60))
             maxScore = int(request.POST.get("max_score", 0))
-            import pdb;pdb.set_trace()
             sub = Submissions(
                 user=request.user,
                 contestid=ct,

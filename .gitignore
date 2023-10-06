@@ -1,1 +1,3 @@
 venv/
+capstone/__pycache__/
+quizapp/__pycache__/

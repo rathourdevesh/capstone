@@ -21,7 +21,12 @@
      Time limit : {{ i.contestid.timelimit }}<br>
      Total Score:{{ i.contestid.maxScore }}<br>
      My Score :{{ i.score }}<br>
-     Submitted on : {{ i.subTime }}
+     Submitted on : {{ i.subTime }} <br>
+     {% if i.contestid.contestType == 'typing' %}
+        Words per Minute : {{ i.wordsPerMin }} <br>
+        Time Taken : {{ i.timeTaken }} <br>
+        Text: {{ i.userSubmision }} <br>
+     {% endif %}
 </div>    
 {% endfor %}
 {% endblock %}

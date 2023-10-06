@@ -48,7 +48,8 @@
      Total Submissions :{{ i.subs.count }}<br>
      {% if request.user in i.enrolments.all %}
         {% if request.user in i.subs.all %}
-        <button onclick="window.location.href=`/scores/${'{{ i.id }}'}`" value="scores">View Scores</button>
+        <!-- <button onclick="window.location.href=`/scores/${'{{ i.id }}'}`" value="scores">View Scores</button> -->
+        <button onclick="enroll('{{ i.id }}')" value="test">Take Test</button>
         {% else %}
         <button onclick="enroll('{{ i.id }}')" value="test">Take Test</button>    
         {% endif %}
