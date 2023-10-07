@@ -80,7 +80,6 @@ def test(request,contestid):
             accuracy = float(request.POST.get("accuracy", 0))
             time_taken = int(request.POST.get("time_taken", 0))
             backspace_count = int(request.POST.get("backspace_count", 0))
-            import pdb;pdb.set_trace()
             typed_text = request.POST.get("user_typing", "")
             words_per_minute = int(len(typed_text.split()) / (time_taken / 60))
             maxScore = int(request.POST.get("max_score", 0))
