@@ -79,6 +79,8 @@ def test(request,contestid):
         if ct.contestType == "typing":
             accuracy = float(request.POST.get("accuracy", 0))
             time_taken = int(request.POST.get("time_taken", 0))
+            backspace_count = int(request.POST.get("backspace_count", 0))
+            import pdb;pdb.set_trace()
             typed_text = request.POST.get("user_typing", "")
             words_per_minute = int(len(typed_text.split()) / (time_taken / 60))
             maxScore = int(request.POST.get("max_score", 0))
@@ -88,7 +90,8 @@ def test(request,contestid):
                 score=accuracy*maxScore,
                 userSubmision=typed_text,
                 timeTaken=time_taken,
-                wordsPerMin=words_per_minute
+                wordsPerMin=words_per_minute,
+                backspaceCount=backspace_count
             )
             sub.save()
             ct.subs.add(request.user)

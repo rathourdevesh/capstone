@@ -40,3 +40,4 @@ class Submissions(models.Model):
     userSubmision = models.TextField(default="")
     timeTaken = models.IntegerField(default=0)
     wordsPerMin = models.IntegerField(default=0)
+    backspaceCount = models.IntegerField(default=0)
