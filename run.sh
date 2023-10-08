@@ -12,4 +12,13 @@ pip install -r requirements.txt
 python3 manage.py makemigrations
 python3 manage.py migrate
 python3 manage.py runserver 0.0.0.0:8000
+
+# web server setup
+sudo apt install nginx
 gunicorn capstone.wsgi:application --bind 0.0.0.0:8000
+
+sudo touch /etc/nginx/sites-available/capstone
+sudo cp nginx /etc/nginx/sites-available/capstone
+sudo ln -s /etc/nginx/sites-available/capstone /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
