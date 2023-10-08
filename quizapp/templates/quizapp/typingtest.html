@@ -21,32 +21,36 @@
         <form id="test-form" action="" method="POST" class="text-center">
             {% csrf_token %}
             <div class="form-group">
-                <textarea class="form-control" id="user_typing" rows="5" name="user_typing" placeholder="Type the above paragraph here." onpaste="return false;" ondrop="return false;" onkeydown="noBackspaces(event);"></textarea>
+                {% if submission_meta.is_submitted == False %}
+                <textarea class="form-control" id="user_typing" rows="5" name="user_typing" placeholder="Type the above paragraph here." onpaste="return false;" ondrop="return false;" onkeydown="noBackspaces(event);" spellcheck="false">{{ submission_meta.typed_text }}</textarea>
+                {% else %}
+                <textarea class="form-control" id="user_typing" rows="5" name="user_typing" placeholder="Type the above paragraph here." onpaste="return false;" ondrop="return false;" onkeydown="noBackspaces(event);" spellcheck="false"></textarea>
+                {% endif %}
             </div>
-            <input type="hidden" name="accuracy" id="accuracy_input">
             <input type="hidden" name="time_taken" id="time_taken_input">
             <input type="hidden" name="max_score" id="max_score" value="{{ cnt.maxScore }}">
             <input type="hidden" name="backspace_count" id="backspace_count">
+            <input type="hidden" name="sub_id" id="sub_id" value="{{ sub_id }}">
         </form>
     </div>
-
     <script>
-        var tl = "{{ cnt.timelimit }}" ;
-        var t;
+        var timeLimit = "{{ cnt.timelimit }}" ;
+        var curTime;
         var intervalId;
         let lastSpacePosition = -1;
-        let backspaceCount = 0;
+        var meta = "{{ submission_meta.backspace_cnt }}";
+        let backspaceCount = (meta != '') ? meta : 0;
         function Timer(initialCount) {
             var currentCount = initialCount;
 
             var timerInterval = setInterval(function() {
                 currentCount--;
-                t = currentCount;
+                curTime = currentCount;
 
                 if (currentCount === 0) {
                     clearInterval(timerInterval);
                     alert("Your response is being Submitted");
-                    document.querySelector("#test-form").submit();
+                    formSubmit();
                 }
 
                 document.getElementById('timer').innerText = currentCount + ' seconds left';
@@ -54,40 +58,29 @@
         }
 
         // Initialize the timer
-        Timer(tl * 60);
-        
+        Timer(timeLimit * 60);
+        const saveInterval = 30 * 1000;
+        setInterval(savePeriodically, saveInterval)
+
+        function formSubmit(){
+            const userTyping = document.getElementById("user_typing").value;
+            const timeTaken = timeLimit * 60 - curTime;
+            document.getElementById("time_taken_input").value = timeTaken;
+            document.getElementById("backspace_count").value = backspaceCount;
+            clearInterval(intervalId);
+            document.querySelector("#test-form").submit();
+        }
+
         function testSubmit() {
-            
+
             var r = confirm("Your response is being Submitted");
             if (r == true) {
-                const originalParagraph = "{{ original_paragraph }}";
-                const userTyping = document.getElementById("user_typing").value;
-                const timeTaken = tl * 60 - t;
-
-                const wordsPerMinute = Math.round((userTyping.split(' ').length / timeTaken) * 60);
-
-                const originalWords = originalParagraph.split(' ');
-                const userWords = userTyping.split(' ');
-                let correctWordsCount = 0;
-                for (let i = 0; i < Math.min(originalWords.length, userWords.length); i++) {
-                    if (originalWords[i] === userWords[i]) {
-                        correctWordsCount++;
-                    }
-                }
-                const accuracy = (correctWordsCount / originalWords.length);
-
-                console.log("Typing speed: " + wordsPerMinute + " words per minute");
-                console.log("Accuracy: " + accuracy + "%");
-
-                document.getElementById("accuracy_input").value = accuracy;
-                document.getElementById("time_taken_input").value = timeTaken;
-                document.getElementById("backspace_count").value = backspaceCount;
-                clearInterval(intervalId);
-                document.querySelector("#test-form").submit();
+                formSubmit();
             } else {
                 console.log("Aborted");
             }
         }
+
         function noBackspaces(event) {
             const userTyping = document.getElementById("user_typing");
             const cursorPosition = userTyping.selectionStart;
@@ -102,6 +95,35 @@
             if (cursorPosition <= lastSpacePosition && event.keyCode == 8) {
                 event.preventDefault();
             }
+        }
+
+        function savePeriodically() {
+            const userTyping = document.getElementById("user_typing").value;
+            const timeTaken = timeLimit * 60 - curTime;
+            const data = {
+                sub_id: '{{ sub_id }}',
+                user_typing: userTyping,
+                time_taken: timeTaken,
+                backspace_count: backspaceCount,
+            };
+            const url = `/test/{{ cnt.id }}`
+            fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(data),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                console.log('Data saved successfully');
+            })
+            .catch(error => {
+                console.error('Error saving data:', error);
+            });
         }
     </script>
 </body>

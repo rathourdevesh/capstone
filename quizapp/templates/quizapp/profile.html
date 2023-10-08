@@ -23,7 +23,12 @@
      My Score :{{ i.score }}<br>
      Submitted on : {{ i.subTime }} <br>
      {% if i.contestid.contestType == 'typing' %}
-        Words per Minute : {{ i.wordsPerMin }} <br>
+        Total Words : {{ i.totalWords }} <br>
+        Correct Words : {{ i.correctWords }} <br>
+        Incorrect Words : {{ i.incorrectWords }} <br>
+        Gross words per Minute : {{ i.gwpm }} <br>
+        Net words per Minute : {{ i.nwpm }} <br>
+        Accuracy : {{ i.accuracy }} <br>
         Time Taken : {{ i.timeTaken }} <br>
         Backspaces : {{ i.backspaceCount }} <br>
         Text: {{ i.userSubmision }} <br>

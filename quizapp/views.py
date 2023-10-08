@@ -4,6 +4,9 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.db import IntegrityError
+from django.db.models import Q
+
+from quizapp.helper import typing_test_logic
 from .models import TypingTest, User,Contest,Questions,Submissions
 from .forms import testPageForm
 from django.http import JsonResponse, request
@@ -77,21 +80,33 @@ def test(request,contestid):
     if(request.method == "POST"):
         ct=Contest.objects.get(id=contestid)
         if ct.contestType == "typing":
-            accuracy = float(request.POST.get("accuracy", 0))
             time_taken = int(request.POST.get("time_taken", 0))
             backspace_count = int(request.POST.get("backspace_count", 0))
             typed_text = request.POST.get("user_typing", "")
-            words_per_minute = int(len(typed_text.split()) / (time_taken / 60))
             maxScore = int(request.POST.get("max_score", 0))
-            sub = Submissions(
-                user=request.user,
-                contestid=ct,
-                score=accuracy*maxScore,
-                userSubmision=typed_text,
-                timeTaken=time_taken,
-                wordsPerMin=words_per_minute,
-                backspaceCount=backspace_count
-            )
+            sub_id = int(request.POST.get("sub_id", 0))
+            print(f"post for sub_id {sub_id} ")
+            original_text = TypingTest.objects.get(contestid=contestid).paragraph
+            (
+                total_words,
+                correct_words,
+                incorrect_words,
+                gwpm,
+                nwpm,
+                accuracy
+            ) = typing_test_logic(original_text, typed_text, time_taken)
+            sub = Submissions.objects.get(id=sub_id)
+            sub.score=accuracy*maxScore
+            sub.userSubmision=typed_text
+            sub.timeTaken=time_taken
+            sub.backspaceCount=backspace_count
+            sub.totalWords=total_words
+            sub.correctWords=correct_words
+            sub.incorrectWords=incorrect_words
+            sub.gwpm=gwpm
+            sub.nwpm=nwpm
+            sub.accuracy=accuracy
+            sub.isSubmitted = True
             sub.save()
             ct.subs.add(request.user)
             return HttpResponseRedirect(reverse("scores", args=[contestid]))
@@ -110,13 +125,57 @@ def test(request,contestid):
             sub.save()
             ct.subs.add(request.user)
             return HttpResponseRedirect(reverse("scores",args=[contestid]))
+    if(request.method == "PUT"):
+        ct=Contest.objects.get(id=contestid)
+        if ct.contestType == "typing":
+            #save progress
+            data = json.loads(request.body.decode("utf-8"))
+            print(f"put for sub_id {data.get('sub_id')} ")
+            sub = Submissions.objects.get(id=data.get("sub_id"))
+            time_taken=int(data.get("time_taken", 0)//60)
+            backspace_count=int(data.get("backspace_count", 0))
+            sub.userSubmision=data.get("user_typing", '')
+            sub.timeTaken=time_taken
+            sub.backspaceCount=backspace_count
+            sub.save()
+    
+            return JsonResponse(
+                {
+                    'message': 'Data saved successfully'
+                }, status=200
+            )
     else:
         cnt = Contest.objects.filter(id=contestid).get()
         if cnt.contestType == "typing":
             para = TypingTest.objects.get(contestid=cnt)
+            subs = Submissions.objects.filter(user=request.user,contestid=contestid).order_by("-subTime").first()
+            submission_meta = {}
+            if subs.isSubmitted == False:
+                submission_meta = {
+                    "is_submitted": False,
+                    "typed_text": subs.userSubmision,
+                    "backspace_cnt": subs.backspaceCount
+                }
+                print(f"{cnt.timelimit } :: {subs.timeTaken}")
+                if cnt.timelimit <= subs.timeTaken:
+                    subs.isSubmitted = True
+                    subs.save()
+                    return HttpResponseRedirect(reverse("scores",args=[contestid]))
+                cnt.timelimit = cnt.timelimit - subs.timeTaken
+                sub_id = subs.id
+            else:
+                sub = Submissions(
+                    user=request.user,
+                    contestid=cnt
+                )
+                sub.save()
+                sub_id = sub.id
+            print(f"render for sub_id {sub_id} {submission_meta}")
             return render(request , "quizapp/typingtest.html", {
-                "cnt":cnt,
-                "original_paragraph": para.paragraph
+                "cnt": cnt,
+                "original_paragraph": para.paragraph,
+                "sub_id": sub_id,
+                "submission_meta": submission_meta
             })
         else:
             obj = Questions.objects.filter(contestid=contestid)

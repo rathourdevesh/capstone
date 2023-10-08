@@ -18,7 +18,7 @@ class Contest(models.Model):
 
 class TypingTest(models.Model):
     contestid = models.ForeignKey(Contest,on_delete=models.CASCADE)
-    paragraph = models.TextField() 
+    paragraph = models.TextField()
 
 class Questions(models.Model):
     ansChoice = (('1','One'),('2','Two'),('3','Three'),('4','Four'),)
@@ -35,9 +35,15 @@ class Questions(models.Model):
 class Submissions(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE)
     contestid = models.ForeignKey(Contest,on_delete=models.CASCADE)
-    score = models.IntegerField()
-    subTime = models.DateTimeField(auto_now_add=True)
+    score = models.IntegerField(default=0)
+    subTime = models.DateTimeField(auto_now=True)
     userSubmision = models.TextField(default="")
     timeTaken = models.IntegerField(default=0)
-    wordsPerMin = models.IntegerField(default=0)
     backspaceCount = models.IntegerField(default=0)
+    totalWords = models.IntegerField(default=0)
+    correctWords = models.IntegerField(default=0)
+    incorrectWords = models.IntegerField(default=0)
+    gwpm = models.DecimalField(decimal_places=2, max_digits=5, default=0)
+    nwpm = models.DecimalField(decimal_places=2, max_digits=5, default=0)
+    accuracy = models.DecimalField(decimal_places=2, max_digits=5, default=0)
+    isSubmitted = models.BooleanField(default=False)

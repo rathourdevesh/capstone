@@ -44,8 +44,6 @@
     <h4>{{ i.contestName }}</h4>
      Time limit : {{ i.timelimit }}<br>
      Total Score:{{ i.maxScore }}<br>
-     Total enrolments :{{ i.enrolments.count }}<br>
-     Total Submissions :{{ i.subs.count }}<br>
      {% if request.user in i.enrolments.all %}
         {% if request.user in i.subs.all %}
         <!-- <button onclick="window.location.href=`/scores/${'{{ i.id }}'}`" value="scores">View Scores</button> -->
